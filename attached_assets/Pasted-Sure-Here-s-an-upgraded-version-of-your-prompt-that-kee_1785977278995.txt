@@ -1,0 +1,267 @@
+Sure. Here’s an upgraded version of your prompt that keeps the technical goal (aggregating and rewriting public crypto calls into your own brand) while avoiding instructions to imitate another channel’s distinctive identity or make posts appear to originate from them.
+
+⸻
+
+ARCC AI Crypto Signal Hub — Production Prompt
+
+Build a production-grade Telegram AI crypto signal aggregation platform that continuously monitors multiple public Telegram channels and automatically publishes high-quality, original crypto call summaries to my own channel.
+
+My Channels
+
+Public Channel
+@AiresArccpubcaller
+
+Private Access
+@william_ARCC
+
+Channel Bio:
+
+Public insider channel
+No hype • No fake gains
+The best opportunities are rarely public. 🐋
+Join the private crypto lounge.
+DM @william_ARCC for access. ❤️‍🔥
+
+⸻
+
+Source Channels
+
+Monitor simultaneously:
+
+* @VirtualCalls1
+* @mad_apes_gambles
+
+The system must support unlimited additional source channels in the future.
+
+⸻
+
+Core Mission
+
+Create an AI-powered research assistant that watches multiple public crypto channels, detects genuine token calls, enriches them with additional market information, and publishes an original ARCC analysis in my own consistent voice.
+
+The goal is to become the fastest, cleanest crypto signal hub—not to copy posts.
+
+⸻
+
+Live Monitoring
+
+The bot runs 24/7.
+
+Monitor:
+
+* New posts
+* Edited posts
+* Photos
+* Videos
+* GIFs
+* Documents
+* DexScreener screenshots
+* Pump.fun screenshots
+
+Everything should enter a processing queue instantly.
+
+⸻
+
+Coin Detection
+
+Automatically detect:
+
+* Solana contracts
+* Ethereum contracts
+* Base contracts
+* BSC contracts
+* TON
+* Sui
+* Aptos
+
+Detect:
+
+* Contract address
+* Chain
+* Token name
+* Symbol
+* Dex links
+* Twitter/X
+* Telegram
+* Website
+* Narrative keywords
+
+Ignore:
+
+* Ads
+* Giveaways
+* Promotions
+* Chat
+* Replies
+* Off-topic posts
+
+⸻
+
+AI Analysis Pipeline
+
+For every detected token:
+
+Extract:
+
+* Chain
+* Contract
+* Ticker
+* Market Cap
+* Liquidity
+* Holder count
+* Age
+* Volume
+* Social links
+
+Then enrich with market data from supported APIs (such as DexScreener, Birdeye, GeckoTerminal, etc.) where available.
+
+Generate:
+
+* AI confidence score
+* Risk level
+* Narrative summary
+* Momentum assessment
+* Key observations
+
+⸻
+
+Original ARCC Writing Style
+
+Every published message must be newly written.
+
+Tone:
+
+* concise
+* confident
+* research-driven
+* trader-focused
+* energetic without hype
+
+Avoid copying wording, formatting, or branding from any source channel.
+
+Example structure:
+
+🔥 ARCC SIGNAL
+Ticker:
+Chain:
+Contract:
+Narrative:
+• ...
+• ...
+• ...
+Market Snapshot:
+• MC
+• Liquidity
+• Volume
+My Confidence:
+82/100
+Risk:
+Medium
+Always manage risk and do your own research.
+@AiresArccpubcaller
+
+⸻
+
+Media Handling
+
+When a monitored post contains:
+
+* image
+* chart
+* video
+* GIF
+
+Download the media and repost it together with the newly generated ARCC caption, subject to permissions.
+
+⸻
+
+Duplicate Detection
+
+Never publish the same contract twice.
+
+Detect duplicates using:
+
+* contract address
+* ticker
+* token name
+
+If the same token appears in multiple monitored channels:
+
+Merge the available information into a single richer analysis instead of posting duplicates.
+
+⸻
+
+Performance Tracking
+
+Track every published token.
+
+Automatically detect milestones such as:
+
+* 2×
+* 5×
+* 10×
+* 25×
+* 50×
+
+Generate follow-up performance updates using current market data.
+
+⸻
+
+Dashboard
+
+Include a web dashboard displaying:
+
+* monitored channels
+* latest detected calls
+* published posts
+* duplicate queue
+* pending reviews
+* AI confidence history
+* win-rate statistics
+* uptime
+* live logs
+
+⸻
+
+Configuration
+
+Use:
+
+* Python 3.10+
+* Telethon
+* PostgreSQL
+* Redis
+* Docker
+* APScheduler
+
+LLM provider should be configurable through .env:
+
+* OpenAI
+* Anthropic
+* Grok
+* Gemini
+
+⸻
+
+Deployment
+
+Deploy on Render using Docker.
+
+Provide:
+
+* Dockerfile
+* docker-compose.yml
+* requirements.txt
+* .env.example
+* README.md
+* automatic reconnect
+* structured logging
+* graceful shutdown
+* retry handling
+* health checks
+
+⸻
+
+Project Goal
+
+Deliver a production-ready, 24/7 Telegram AI crypto research platform that aggregates public market signals from multiple sources, generates original ARCC-branded analysis, preserves permitted media, filters duplicates, tracks performance, and scales to support many monitored channels through a clean, modular architecture.
