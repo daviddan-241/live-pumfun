@@ -1,36 +1,483 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
+  # Keep the title stable because the code generator uses it for output paths.
   title: Api
   version: 0.1.0
-  description: API specification
+  description: ARCC Signal Hub operational API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: dashboard
+  - name: channels
+  - name: calls
+  - name: settings
+  - name: credentials
+  - name: logs
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
-          description: Healthy
+          description: Service health
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Dashboard summary
+      responses:
+        "200":
+          description: Aggregate dashboard metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /dashboard/activity:
+    get:
+      operationId: getDashboardActivity
+      tags: [dashboard]
+      summary: Recent processing activity
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Recent activity events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityEvent"
+  /channels:
+    get:
+      operationId: listChannels
+      tags: [channels]
+      summary: List configured Telegram channels
+      responses:
+        "200":
+          description: Configured channels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Channel"
+    post:
+      operationId: createChannel
+      tags: [channels]
+      summary: Add a Telegram source channel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChannelInput"
+      responses:
+        "201":
+          description: Channel added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Channel"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /channels/{channelId}:
+    patch:
+      operationId: updateChannel
+      tags: [channels]
+      summary: Update a configured channel
+      parameters:
+        - $ref: "#/components/parameters/ChannelId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChannelUpdate"
+      responses:
+        "200":
+          description: Updated channel
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Channel"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /calls:
+    get:
+      operationId: listCalls
+      tags: [calls]
+      summary: List detected token calls
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, pending, published, rejected, duplicate]
+            default: all
+        - name: search
+          in: query
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Detected calls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TokenCall"
+  /calls/{callId}:
+    get:
+      operationId: getCall
+      tags: [calls]
+      summary: Get one detected token call
+      parameters:
+        - $ref: "#/components/parameters/CallId"
+      responses:
+        "200":
+          description: Token call
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenCall"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /calls/{callId}/review:
+    post:
+      operationId: reviewCall
+      tags: [calls]
+      summary: Approve or reject a call
+      parameters:
+        - $ref: "#/components/parameters/CallId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInput"
+      responses:
+        "200":
+          description: Reviewed call
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenCall"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Read runtime configuration
+      responses:
+        "200":
+          description: Public runtime configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeSettings"
+    patch:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update runtime configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuntimeSettingsUpdate"
+      responses:
+        "200":
+          description: Updated runtime configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeSettings"
+  /credentials/status:
+    get:
+      operationId: getCredentialsStatus
+      tags: [credentials]
+      summary: Read non-secret credential configuration status
+      responses:
+        "200":
+          description: Credential presence flags only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CredentialsStatus"
+  /credentials:
+    patch:
+      operationId: updateCredentials
+      tags: [credentials]
+      summary: Encrypt and store integration credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredentialsUpdate"
+      responses:
+        "200":
+          description: Updated presence flags only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CredentialsStatus"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /logs:
+    get:
+      operationId: listLogs
+      tags: [logs]
+      summary: List recent structured processing logs
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Recent logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LogEntry"
 components:
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: number
+        minimum: 1
+        maximum: 100
+        default: 25
+    ChannelId:
+      name: channelId
+      in: path
+      required: true
+      schema:
+        type: number
+    CallId:
+      name: callId
+      in: path
+      required: true
+      schema:
+        type: number
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
   schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
     HealthStatus:
       type: object
+      required: [status, service, uptimeSeconds, telegram, database, redis]
       properties:
         status:
           type: string
-      required:
-        - status
-
+        service:
+          type: string
+        uptimeSeconds:
+          type: number
+        telegram:
+          type: string
+          enum: [connected, disconnected, not_configured]
+        database:
+          type: string
+          enum: [connected, unavailable]
+        redis:
+          type: string
+          enum: [connected, unavailable, not_configured]
+    DashboardSummary:
+      type: object
+      required: [monitoredChannels, activeChannels, detectedCalls, pendingReview, publishedCalls, duplicateQueue, winRate, uptimeSeconds, confidenceHistory]
+      properties:
+        monitoredChannels: { type: number }
+        activeChannels: { type: number }
+        detectedCalls: { type: number }
+        pendingReview: { type: number }
+        publishedCalls: { type: number }
+        duplicateQueue: { type: number }
+        winRate: { type: number }
+        uptimeSeconds: { type: number }
+        confidenceHistory:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfidencePoint"
+    ConfidencePoint:
+      type: object
+      required: [label, value]
+      properties:
+        label: { type: string }
+        value: { type: number }
+    Channel:
+      type: object
+      required: [id, username, displayName, kind, status, lastSeenAt, messagesToday]
+      properties:
+        id: { type: number }
+        username: { type: string }
+        displayName: { type: string }
+        kind:
+          type: string
+          enum: [source, destination]
+        status:
+          type: string
+          enum: [monitoring, paused, error]
+        lastSeenAt: { type: ["string", "null"], format: date-time }
+        messagesToday: { type: number }
+        errorMessage: { type: ["string", "null"] }
+    ChannelInput:
+      type: object
+      required: [username]
+      properties:
+        username: { type: string, minLength: 2, maxLength: 255 }
+        displayName: { type: string, maxLength: 255 }
+    ChannelUpdate:
+      type: object
+      properties:
+        displayName: { type: string, maxLength: 255 }
+        status:
+          type: string
+          enum: [monitoring, paused, error]
+    TokenCall:
+      type: object
+      required: [id, ticker, tokenName, chain, contract, status, confidence, risk, narrative, observations, sourceChannels, detectedAt, market]
+      properties:
+        id: { type: number }
+        ticker: { type: string }
+        tokenName: { type: string }
+        chain: { type: string }
+        contract: { type: string }
+        status:
+          type: string
+          enum: [pending, published, rejected, duplicate]
+        confidence: { type: number }
+        risk:
+          type: string
+          enum: [low, medium, high, critical]
+        narrative: { type: string }
+        observations:
+          type: array
+          items: { type: string }
+        sourceChannels:
+          type: array
+          items: { type: string }
+        detectedAt: { type: string, format: date-time }
+        publishedAt: { type: ["string", "null"], format: date-time }
+        multiplier: { type: ["number", "null"] }
+        milestone:
+          type: ["string", "null"]
+          enum: [null, "2x", "5x", "10x", "25x", "50x"]
+        market:
+          $ref: "#/components/schemas/MarketSnapshot"
+    MarketSnapshot:
+      type: object
+      required: [marketCap, liquidity, volume24h, holders, age]
+      properties:
+        marketCap: { type: ["number", "null"] }
+        liquidity: { type: ["number", "null"] }
+        volume24h: { type: ["number", "null"] }
+        holders: { type: ["number", "null"] }
+        age: { type: ["string", "null"] }
+        priceChange24h: { type: ["number", "null"] }
+    ReviewInput:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [approve, reject]
+    ActivityEvent:
+      type: object
+      required: [id, kind, message, createdAt]
+      properties:
+        id: { type: number }
+        kind:
+          type: string
+          enum: [detected, enriched, duplicate, published, milestone, system, error]
+        message: { type: string }
+        createdAt: { type: string, format: date-time }
+        metadata:
+          type: object
+          additionalProperties: true
+    RuntimeSettings:
+      type: object
+      required: [destinationChannel, llmProvider, autoPublish, mediaRepost, minimumConfidence, duplicateWindowHours]
+      properties:
+        destinationChannel: { type: string }
+        llmProvider:
+          type: string
+          enum: [openai, anthropic, grok, gemini]
+        autoPublish: { type: boolean }
+        mediaRepost: { type: boolean }
+        minimumConfidence: { type: number, minimum: 0, maximum: 100 }
+        duplicateWindowHours: { type: number, minimum: 1, maximum: 720 }
+    RuntimeSettingsUpdate:
+      type: object
+      properties:
+        destinationChannel: { type: string }
+        llmProvider:
+          type: string
+          enum: [openai, anthropic, grok, gemini]
+        autoPublish: { type: boolean }
+        mediaRepost: { type: boolean }
+        minimumConfidence: { type: number, minimum: 0, maximum: 100 }
+        duplicateWindowHours: { type: number, minimum: 1, maximum: 720 }
+    CredentialsStatus:
+      type: object
+      required: [telegramApiIdConfigured, telegramApiHashConfigured, telegramSessionConfigured, telegramBotTokenConfigured, geminiApiKeyConfigured]
+      properties:
+        telegramApiIdConfigured: { type: boolean }
+        telegramApiHashConfigured: { type: boolean }
+        telegramSessionConfigured: { type: boolean }
+        telegramBotTokenConfigured: { type: boolean }
+        geminiApiKeyConfigured: { type: boolean }
+    CredentialsUpdate:
+      type: object
+      properties:
+        telegramApiId: { type: string, minLength: 1 }
+        telegramApiHash: { type: string, minLength: 1 }
+        telegramSession: { type: string, minLength: 1 }
+        telegramBotToken: { type: string, minLength: 1 }
+        geminiApiKey: { type: string, minLength: 1 }
+    LogEntry:
+      type: object
+      required: [id, level, service, message, createdAt]
+      properties:
+        id: { type: number }
+        level:
+          type: string
+          enum: [info, warn, error]
+        service: { type: string }
+        message: { type: string }
+        createdAt: { type: string, format: date-time }
+        metadata:
+          type: object
+          additionalProperties: true

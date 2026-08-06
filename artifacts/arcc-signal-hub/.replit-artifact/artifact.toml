@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "ARCC Signal Hub"
+description = "A production Telegram AI crypto research platform that monitors configured public channels, enriches real token mentions with market data, generates original Gemini analysis, queues review decisions, and publishes approved signals to your own channel."
+version = "1.0.0"
+id = "artifacts/arcc-signal-hub"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25313
+
+[services.development]
+run = "pnpm --filter @workspace/arcc-signal-hub run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/arcc-signal-hub", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/arcc-signal-hub/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25313"
+BASE_PATH = "/"

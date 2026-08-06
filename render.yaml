@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: arcc-signal-hub
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: ARCC_DASHBOARD_PASSWORD
+        sync: false
+      - key: ARCC_ENCRYPTION_KEY
+        sync: false
+      - key: PORT
+        value: "8080"
+  - type: worker
+    name: arcc-signal-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile.worker
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: ARCC_ENCRYPTION_KEY
+        sync: false
