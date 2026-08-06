@@ -1,0 +1,1 @@
+- [ARCC deployment split](arcc-deployment.md) — web/API and Telegram worker deploy as separate services; integration credentials are entered through the dashboard and encrypted in PostgreSQL.
