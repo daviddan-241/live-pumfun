@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARCC Telegram Intelligence & Publishing System</title>
+  <style>
+    :root {
+      --bg-dark: #0d1117;
+      --bg-card: #161b22;
+      --bg-surface: #21262d;
+      --border-color: #30363d;
+      --accent-blue: #58a6ff;
+      --text-main: #e6edf3;
+      --text-muted: #7d8590;
+      --status-green: #238636;
+      --status-red: #da3633;
+      --status-yellow: #d29922;
+      --status-purple: #8957e5;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* Header */
+    header {
+      background-color: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--accent-blue);
+    }
+
+    .sse-status {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 12px;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+    }
+
+    .sse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--status-red);
+    }
+
+    .sse-dot.connected {
+      background-color: var(--status-green);
+      box-shadow: 0 0 6px var(--status-green);
+    }
+
+    /* Navigation Tabs */
+    nav {
+      background-color: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+    }
+
+    nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      color: var(--accent-blue);
+      border-bottom-color: var(--accent-blue);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      padding: 1rem;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Cards & Layout */
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .card-title {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.875rem;
+    }
+
+    th {
+      background-color: var(--bg-surface);
+      color: var(--text-muted);
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-green { background: rgba(35, 134, 54, 0.2); color: #3fb950; border: 1px solid var(--status-green); }
+    .badge-red { background: rgba(218, 54, 51, 0.2); color: #f85149; border: 1px solid var(--status-red); }
+    .badge-yellow { background: rgba(210, 153, 34, 0.2); color: #d29922; border: 1px solid var(--status-yellow); }
+    .badge-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+    .badge-purple { background: rgba(137, 87, 229, 0.2); color: #a371f7; border: 1px solid var(--status-purple); }
+
+    /* Feed List */
+    .feed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .feed-item {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .feed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .feed-content {
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      transition: .3s;
+      border-radius: 22px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: var(--text-muted);
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--status-green);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(18px);
+      background-color: #fff;
+    }
+
+    /* Forms & Inputs */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .form-control {
+      width: 100%;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-main);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    .btn {
+      background-color: var(--accent-blue);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    /* Filters Bar */
+    .filter-bar {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-bar .form-control {
+      width: auto;
+      min-width: 160px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 200;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    /* Utility */
+    .text-muted { color: var(--text-muted); }
+    .text-green { color: #3fb950; }
+    .text-red { color: #f85149; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      ⚡ ARCC Telegram Intelligence
+    </div>
+    <div class="sse-status">
+      <div id="sseDot" class="sse-dot"></div>
+      <span id="sseLabel">Disconnected</span>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav>
+    <button class="tab-btn active" data-tab="live">Live Monitor</button>
+    <button class="tab-btn" data-tab="sources">Sources</button>
+    <button class="tab-btn" data-tab="signals">Signals</button>
+    <button class="tab-btn" data-tab="relationships">Replies & Mappings</button>
+    <button class="tab-btn" data-tab="media">Media Queue</button>
+    <button class="tab-btn" data-tab="publishing">Publishing Log</button>
+    <button class="tab-btn" data-tab="pnl">PNL Tracker</button>
+    <button class="tab-btn" data-tab="logs">Logs</button>
+    <button class="tab-btn" data-tab="settings">Settings</button>
+    <button class="tab-btn" data-tab="health">Health</button>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+
+    <!-- LIVE MONITOR TAB -->
+    <div id="tab-live" class="tab-content active">
+      <div class="grid-cards">
+        <div class="card">
+          <div class="card-title">Telegram Client</div>
+          <div id="statTelegram" class="card-value text-red">DISCONNECTED</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Monitoring Status</div>
+          <div id="statMonitoring" class="card-value text-muted">STOPPED</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Worker Queue</div>
+          <div id="statQueue" class="card-value">0 jobs</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Worker Health</div>
+          <div id="statWorker" class="card-value text-green">HEALTHY</div>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom: 0.75rem;">Real-time Activity Feed</h3>
+      <div id="liveFeed" class="feed-list">
+        <div class="feed-item text-muted">Waiting for events...</div>
+      </div>
+    </div>
+
+    <!-- SOURCES TAB -->
+    <div id="tab-sources" class="tab-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3>Configured Channel Sources</h3>
+        <button class="btn" onclick="openAddSourceModal()">+ Add Source</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Source Name</th>
+              <th>Status</th>
+              <th>Mode</th>
+              <th>Priority</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sourcesTableBody">
+            <tr><td colspan="5" class="text-muted">Loading sources...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SIGNALS TAB -->
+    <div id="tab-signals" class="tab-content">
+      <div class="filter-bar">
+        <input type="text" id="signalSearch" class="form-control" placeholder="Search Ticker / CA..." oninput="loadSignals()">
+        <select id="signalStatusFilter" class="form-control" onchange="loadSignals()">
+          <option value="">All Statuses</option>
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="UPDATED">UPDATED</option>
+          <option value="CLOSED">CLOSED</option>
+        </select>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Contract Address</th>
+              <th>Status</th>
+              <th>Source</th>
+              <th>Follow-ups</th>
+              <th>PNL %</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="signalsTableBody">
+            <tr><td colspan="7" class="text-muted">Loading signals...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPLIES & RELATIONSHIPS TAB -->
+    <div id="tab-relationships" class="tab-content">
+      <h3 style="margin-bottom: 1rem;">Source to Destination Message Mappings</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Source Message ID</th>
+              <th>Destination Channel</th>
+              <th>Destination Message ID</th>
+              <th>Mapped At</th>
+            </tr>
+          </thead>
+          <tbody id="mappingsTableBody">
+            <tr><td colspan="4" class="text-muted">Loading mappings...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MEDIA QUEUE TAB -->
+    <div id="tab-media" class="tab-content">
+      <h3 style="margin-bottom: 1rem;">Media Cache & Queue</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Media ID</th>
+              <th>File Reference</th>
+              <th>Status</th>
+              <th>Created At</th>
+            </tr>
+          </thead>
+          <tbody id="mediaTableBody">
+            <tr><td colspan="4" class="text-muted">Loading media queue...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PUBLISHING LOG TAB -->
+    <div id="tab-publishing" class="tab-content">
+      <h3 style="margin-bottom: 1rem;">Publishing Audit Log</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Log ID</th>
+              <th>Message ID</th>
+              <th>Destination Channel</th>
+              <th>Status</th>
+              <th>Error Details</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="publishingTableBody">
+            <tr><td colspan="6" class="text-muted">Loading publishing log...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PNL TRACKER TAB -->
+    <div id="tab-pnl" class="tab-content">
+      <h3 style="margin-bottom: 1rem;">PNL & Pump Detections</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Gain %</th>
+              <th>Details</th>
+              <th>Signal ID</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="pnlTableBody">
+            <tr><td colspan="5" class="text-muted">Loading PNL records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LOGS TAB -->
+    <div id="tab-logs" class="tab-content">
+      <div class="filter-bar">
+        <select id="logLevelFilter" class="form-control" onchange="loadLogs()">
+          <option value="">All Levels</option>
+          <option value="INFO">INFO</option>
+          <option value="WARN">WARN</option>
+          <option value="ERROR">ERROR</option>
+          <option value="DEBUG">DEBUG</option>
+        </select>
+        <input type="text" id="logSearch" class="form-control" placeholder="Search log text..." oninput="loadLogs()">
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Level</th>
+              <th>Component</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody">
+            <tr><td colspan="4" class="text-muted">Loading logs...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div id="tab-settings" class="tab-content">
+      <div class="card" style="max-width: 600px;">
+        <h3 style="margin-bottom: 1rem;">System Settings</h3>
+        <form id="settingsForm" onsubmit="saveSettings(event)">
+          <div class="form-group">
+            <label>Confidence Threshold (0.0 - 1.0)</label>
+            <input type="number" step="0.05" min="0" max="1" id="settingConfidence" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>ARCC Contact Handle</label>
+            <input type="text" id="settingContact" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Private Group Invite Link</label>
+            <input type="text" id="settingGroupLink" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Worker Concurrency</label>
+            <input type="number" id="settingConcurrency" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Heartbeat Interval (ms)</label>
+            <input type="number" id="settingHeartbeat" class="form-control" required>
+          </div>
+          <button type="submit" class="btn">Save Settings</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- HEALTH TAB -->
+    <div id="tab-health" class="tab-content">
+      <h3 style="margin-bottom: 1rem;">System Component Health</h3>
+      <div id="healthCards" class="grid-cards">
+        <div class="card">
+          <div class="card-title">Telegram Client</div>
+          <div id="healthTelegram" class="card-value text-red">DISCONNECTED</div>
+          <div id="healthTelegramDetails" class="text-muted" style="font-size: 0.8rem; margin-top: 0.5rem;">Checking status...</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Monitoring Pipeline</div>
+          <div id="healthMonitoring" class="card-value text-muted">STOPPED</div>
+          <div id="healthMonitoringDetails" class="text-muted" style="font-size: 0.8rem; margin-top: 0.5rem;">Checking status...</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Worker Subsystem</div>
+          <div id="healthWorker" class="card-value text-green">HEALTHY</div>
+          <div id="healthWorkerDetails" class="text-muted" style="font-size: 0.8rem; margin-top: 0.5rem;">Queue & worker check...</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Queue Metrics</div>
+          <div id="healthQueueSize" class="card-value">0</div>
+          <div id="healthQueueDetails" class="text-muted" style="font-size: 0.8rem; margin-top: 0.5rem;">Oldest: 0s | Failed: 0</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Signal Detail Modal -->
+  <div id="signalModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Signal Details</h3>
+        <button class="close-btn" onclick="closeSignalModal()">&times;</button>
+      </div>
+      <div id="modalBody">Loading detail...</div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Navigation
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        const tabId = 'tab-' + btn.getAttribute('data-tab');
+        document.getElementById(tabId).classList.add('active');
+        loadTabData(btn.getAttribute('data-tab'));
+      });
+    });
+
+    // SSE Setup
+    let sseSource = null;
+
+    function initSSE() {
+      if (sseSource) sseSource.close();
+      sseSource = new EventSource('/api/events');
+
+      sseSource.onopen = () => {
+        document.getElementById('sseDot').className = 'sse-dot connected';
+        document.getElementById('sseLabel').innerText = 'Connected';
+      };
+
+      sseSource.onerror = () => {
+        document.getElementById('sseDot').className = 'sse-dot';
+        document.getElementById('sseLabel').innerText = 'Disconnected';
+      };
+
+      // Listen to SSE Events
+      const eventsToListen = [
+        'message:received', 'message:classified', 'message:published', 'message:skipped',
+        'message:failed', 'signal:new', 'signal:update', 'signal:pnl', 'pnl:posted',
+        'pnl:forwarded', 'connection:status', 'health:update'
+      ];
+
+      eventsToListen.forEach(evt => {
+        sseSource.addEventListener(evt, (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            handleSSEEvent(evt, data);
+          } catch (err) {
+            console.error('Failed to parse SSE payload', err);
+          }
+        });
+      });
+    }
+
+    function handleSSEEvent(eventType, data) {
+      appendLiveFeed(eventType, data);
+      fetchStatus();
+    }
+
+    function appendLiveFeed(eventType, data) {
+      const feed = document.getElementById('liveFeed');
+      if (feed.children.length === 1 && feed.children[0].innerText.includes('Waiting')) {
+        feed.innerHTML = '';
+      }
+
+      const item = document.createElement('div');
+      item.className = 'feed-item';
+
+      let badgeClass = 'badge-blue';
+      if (eventType.includes('published') || eventType.includes('posted')) badgeClass = 'badge-green';
+      if (eventType.includes('failed')) badgeClass = 'badge-red';
+      if (eventType.includes('skipped')) badgeClass = 'badge-yellow';
+
+      const timeStr = new Date().toLocaleTimeString();
+      item.innerHTML = `
+        <div class="feed-header">
+          <span class="badge ${badgeClass}">${eventType}</span>
+          <span>${timeStr}</span>
+        </div>
+        <div class="feed-content">${escapeHtml(JSON.stringify(data, null, 2))}</div>
+      `;
+
+      feed.insertBefore(item, feed.firstChild);
+      if (feed.children.length > 50) feed.removeChild(feed.lastChild);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Status fetcher
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+
+        const tgEl = document.getElementById('statTelegram');
+        tgEl.innerText = data.telegram;
+        tgEl.className = 'card-value ' + (data.telegram === 'CONNECTED' ? 'text-green' : 'text-red');
+
+        const monEl = document.getElementById('statMonitoring');
+        monEl.innerText = data.monitoring;
+        monEl.className = 'card-value ' + (data.monitoring === 'ACTIVE' ? 'text-green' : 'text-muted');
+
+        document.getElementById('statQueue').innerText = `${data.queue?.size || 0} jobs`;
+
+        const wrkEl = document.getElementById('statWorker');
+        wrkEl.innerText = data.worker;
+        wrkEl.className = 'card-value ' + (data.worker === 'HEALTHY' ? 'text-green' : 'text-red');
+      } catch (err) {
+        console.error('Error fetching status:', err);
+      }
+    }
+
+    // Tab Data Loaders
+    function loadTabData(tab) {
+      if (tab === 'sources') loadSources();
+      if (tab === 'signals') loadSignals();
+      if (tab === 'relationships') loadMappings();
+      if (tab === 'media') loadMedia();
+      if (tab === 'publishing') loadPublishingLog();
+      if (tab === 'pnl') loadPnl();
+      if (tab === 'logs') loadLogs();
+      if (tab === 'settings') loadSettings();
+      if (tab === 'health') loadHealth();
+    }
+
+    // Sources Loader & Toggles
+    async function loadSources() {
+      const tbody = document.getElementById('sourcesTableBody');
+      try {
+        const res = await fetch('/api/sources');
+        const sources = await res.json();
+        tbody.innerHTML = sources.map(s => `
+          <tr>
+            <td><strong>${escapeHtml(s.name)}</strong></td>
+            <td>
+              <label class="switch">
+                <input type="checkbox" ${s.enabled ? 'checked' : ''} onchange="toggleSource('${s.id}', this.checked)">
+                <span class="slider"></span>
+              </label>
+            </td>
+            <td><span class="badge badge-blue">${s.mode}</span></td>
+            <td>${s.priority}</td>
+            <td><button class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="editSourcePriority('${s.id}', ${s.priority})">Edit</button></td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-red">Failed to load sources</td></tr>';
+      }
+    }
+
+    async function toggleSource(id, enabled) {
+      await fetch(`/api/sources/${id}/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled })
+      });
+      loadSources();
+    }
+
+    async function openAddSourceModal() {
+      const name = prompt('Enter new source channel name/identifier:');
+      if (name) {
+        await fetch('/api/sources', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, enabled: true, mode: 'auto', priority: 5 })
+        });
+        loadSources();
+      }
+    }
+
+    async function editSourcePriority(id, currentPriority) {
+      const priority = prompt('Enter new priority (1-10):', currentPriority);
+      if (priority !== null) {
+        await fetch(`/api/sources/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ priority: parseInt(priority) })
+        });
+        loadSources();
+      }
+    }
+
+    // Signals Loader
+    async function loadSignals() {
+      const search = document.getElementById('signalSearch').value;
+      const status = document.getElementById('signalStatusFilter').value;
+      const tbody = document.getElementById('signalsTableBody');
+
+      try {
+        const res = await fetch(`/api/signals?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}`);
+        const result = await res.json();
+        const signals = result.data || [];
+
+        if (signals.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-muted">No signals found</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = signals.map(sig => `
+          <tr style="cursor: pointer;" onclick="openSignalModal('${sig.id}')">
+            <td><strong>$${escapeHtml(sig.ticker || 'N/A')}</strong></td>
+            <td><code>${escapeHtml(sig.contract_address || 'N/A')}</code></td>
+            <td><span class="badge ${sig.status === 'ACTIVE' ? 'badge-green' : 'badge-purple'}">${sig.status}</span></td>
+            <td>${escapeHtml(sig.source_id || 'unknown')}</td>
+            <td>${sig.followup_count || 0}</td>
+            <td class="${(sig.pnl_percentage || 0) >= 0 ? 'text-green' : 'text-red'}">${sig.pnl_percentage || 0}%</td>
+            <td>${new Date(sig.created_at).toLocaleString()}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-red">Failed to load signals</td></tr>';
+      }
+    }
+
+    async function openSignalModal(id) {
+      const modal = document.getElementById('signalModal');
+      const body = document.getElementById('modalBody');
+      modal.classList.add('open');
+      body.innerHTML = 'Loading signal lifecycle...';
+
+      try {
+        const res = await fetch(`/api/signals/${id}`);
+        const sig = await res.json();
+        body.innerHTML = `
+          <p><strong>Ticker:</strong> $${escapeHtml(sig.ticker)}</p>
+          <p><strong>Contract:</strong> <code>${escapeHtml(sig.contract_address)}</code></p>
+          <p><strong>Status:</strong> ${sig.status}</p>
+          <p><strong>Follow-ups:</strong> ${sig.followup_count}</p>
+          <p><strong>PNL:</strong> ${sig.pnl_percentage}%</p>
+          <hr style="border-color: var(--border-color); margin: 1rem 0;">
+          <h4>Related Messages (${sig.lifecycle?.messages?.length || 0})</h4>
+          <pre style="background: var(--bg-surface); padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-top: 0.5rem;">${JSON.stringify(sig.lifecycle?.messages || [], null, 2)}</pre>
+        `;
+      } catch (err) {
+        body.innerHTML = '<span class="text-red">Failed to load signal detail</span>';
+      }
+    }
+
+    function closeSignalModal() {
+      document.getElementById('signalModal').classList.remove('open');
+    }
+
+    // Mappings
+    async function loadMappings() {
+      const tbody = document.getElementById('mappingsTableBody');
+      try {
+        const res = await fetch('/api/mappings');
+        const mappings = await res.json();
+        tbody.innerHTML = mappings.map(m => `
+          <tr>
+            <td><code>${escapeHtml(m.source_message_id)}</code></td>
+            <td>${escapeHtml(m.dest_channel)}</td>
+            <td><code>${escapeHtml(m.dest_message_id)}</code></td>
+            <td>${new Date(m.created_at).toLocaleString()}</td>
+          </tr>
+        `).join('');
+      } catch {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-red">Error loading mappings</td></tr>';
+      }
+    }
+
+    // Media Queue
+    async function loadMedia() {
+      const tbody = document.getElementById('mediaTableBody');
+      tbody.innerHTML = '<tr><td colspan="4" class="text-muted">No media operations pending</td></tr>';
+    }
+
+    // Publishing Log
+    async function loadPublishingLog() {
+      const tbody = document.getElementById('publishingTableBody');
+      try {
+        const res = await fetch('/api/publishing-log');
+        const logs = await res.json();
+        tbody.innerHTML = logs.map(l => `
+          <tr>
+            <td><code>${escapeHtml(l.id)}</code></td>
+            <td><code>${escapeHtml(l.message_id)}</code></td>
+            <td>${escapeHtml(l.channel)}</td>
+            <td><span class="badge ${l.status === 'SUCCESS' ? 'badge-green' : 'badge-red'}">${l.status}</span></td>
+            <td class="text-muted">${escapeHtml(l.error || '-')}</td>
+            <td>${new Date(l.created_at).toLocaleString()}</td>
+          </tr>
+        `).join('');
+      } catch {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-red">Error loading publishing log</td></tr>';
+      }
+    }
+
+    // PNL Tracker
+    async function loadPnl() {
+      const tbody = document.getElementById('pnlTableBody');
+      try {
+        const res = await fetch('/api/pnl');
+        const records = await res.json();
+        tbody.innerHTML = records.map(p => `
+          <tr>
+            <td><strong>$${escapeHtml(p.ticker)}</strong></td>
+            <td class="${p.gain_percentage >= 0 ? 'text-green' : 'text-red'}">+${p.gain_percentage}%</td>
+            <td>${escapeHtml(p.details)}</td>
+            <td><code>${escapeHtml(p.signal_id)}</code></td>
+            <td>${new Date(p.created_at).toLocaleString()}</td>
+          </tr>
+        `).join('');
+      } catch {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-red">Error loading PNL records</td></tr>';
+      }
+    }
+
+    // Logs
+    async function loadLogs() {
+      const level = document.getElementById('logLevelFilter').value;
+      const search = document.getElementById('logSearch').value;
+      const tbody = document.getElementById('logsTableBody');
+
+      try {
+        const res = await fetch(`/api/logs?level=${encodeURIComponent(level)}&search=${encodeURIComponent(search)}`);
+        const result = await res.json();
+        const logs = result.data || [];
+
+        tbody.innerHTML = logs.map(l => `
+          <tr>
+            <td class="text-muted">${new Date(l.timestamp).toLocaleTimeString()}</td>
+            <td><span class="badge ${l.level === 'ERROR' ? 'badge-red' : (l.level === 'WARN' ? 'badge-yellow' : 'badge-blue')}">${l.level}</span></td>
+            <td><strong>${escapeHtml(l.component)}</strong></td>
+            <td>${escapeHtml(l.message)}</td>
+          </tr>
+        `).join('');
+      } catch {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-red">Error loading logs</td></tr>';
+      }
+    }
+
+    // Settings
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        const s = await res.json();
+        document.getElementById('settingConfidence').value = s.CONFIDENCE_THRESHOLD;
+        document.getElementById('settingContact').value = s.ARCC_CONTACT;
+        document.getElementById('settingGroupLink').value = s.PRIVATE_GROUP_LINK;
+        document.getElementById('settingConcurrency').value = s.WORKER_CONCURRENCY;
+        document.getElementById('settingHeartbeat').value = s.HEARTBEAT_INTERVAL;
+      } catch (err) {
+        console.error('Failed to load settings', err);
+      }
+    }
+
+    async function saveSettings(e) {
+      e.preventDefault();
+      const body = {
+        CONFIDENCE_THRESHOLD: document.getElementById('settingConfidence').value,
+        ARCC_CONTACT: document.getElementById('settingContact').value,
+        PRIVATE_GROUP_LINK: document.getElementById('settingGroupLink').value,
+        WORKER_CONCURRENCY: document.getElementById('settingConcurrency').value,
+        HEARTBEAT_INTERVAL: document.getElementById('settingHeartbeat').value,
+      };
+
+      try {
+        await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        alert('Settings saved successfully!');
+      } catch {
+        alert('Failed to save settings');
+      }
+    }
+
+    // Health
+    async function loadHealth() {
+      try {
+        const res = await fetch('/api/health');
+        const h = await res.json();
+
+        const tg = document.getElementById('healthTelegram');
+        tg.innerText = h.telegram?.status || 'UNKNOWN';
+        tg.className = 'card-value ' + (h.telegram?.status === 'CONNECTED' ? 'text-green' : 'text-red');
+        document.getElementById('healthTelegramDetails').innerText = `Last check: ${new Date(h.telegram?.last_check || Date.now()).toLocaleTimeString()}`;
+
+        const mon = document.getElementById('healthMonitoring');
+        mon.innerText = h.monitoring?.status || 'UNKNOWN';
+        mon.className = 'card-value ' + (h.monitoring?.status === 'ACTIVE' ? 'text-green' : 'text-muted');
+        document.getElementById('healthMonitoringDetails').innerText = `Active listeners: ${h.monitoring?.details || '0'}`;
+
+        const wrk = document.getElementById('healthWorker');
+        wrk.innerText = h.worker?.status || 'HEALTHY';
+        wrk.className = 'card-value ' + (h.worker?.status === 'HEALTHY' ? 'text-green' : 'text-red');
+        document.getElementById('healthWorkerDetails').innerText = h.worker?.details || 'Workers active';
+
+        document.getElementById('healthQueueSize').innerText = h.queue?.size || 0;
+        document.getElementById('healthQueueDetails').innerText = `Oldest: ${h.queue?.oldest_job_age || 0}s | Failed: ${h.queue?.failed_count || 0}`;
+      } catch (err) {
+        console.error('Error loading health:', err);
+      }
+    }
+
+    // Initialize Page
+    initSSE();
+    fetchStatus();
+    setInterval(fetchStatus, 10000);
+  </script>
+</body>
+</html>
